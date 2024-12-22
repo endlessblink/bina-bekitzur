@@ -1,0 +1,326 @@
+# rules.md - AI Models Directory Project
+
+## Project Definition
+This is a Next.js 14 application for an AI Models Directory, featuring RTL Hebrew interface, model categorization, interactive AI journeys, tutorials, and professional content. The application uses Supabase for backend and authentication, and is optimized for Vercel deployment.
+
+## Technical Requirements
+
+### Core Technology Stack
+- Next.js 14 with App Router
+- TypeScript for type safety
+- Tailwind CSS for styling
+- shadcn/ui for components
+- Supabase for database and auth
+- Vercel for deployment
+
+### Development Constraints
+1. MUST use Server Components by default
+2. MUST implement Edge Runtime where possible
+3. MUST support RTL layout throughout
+4. MUST use TypeScript strictly
+5. MUST follow accessibility guidelines
+6. MUST optimize for performance
+7. MUST use shadcn/ui components
+
+## Project Structure
+
+### File Organization
+```
+src/
+├── app/
+│   ├── (auth)/
+│   │   └── admin/
+│   │       ├── categories/
+│   │       ├── models/
+│   │       ├── tutorials/
+│   │       ├── journeys/
+│   │       └── layout.tsx
+│   ├── api/
+│   ├── models/
+│   ├── journeys/
+│   ├── tutorials/
+│   └── layout.tsx
+├── components/
+│   ├── ui/
+│   │   └── [shadcn components]
+│   ├── shared/
+│   │   ├── navigation/
+│   │   ├── cards/
+│   │   └── forms/
+│   └── admin/
+├── lib/
+│   ├── supabase.ts
+│   ├── utils.ts
+│   └── constants.ts
+└── utils/
+```
+
+### Required Dependencies
+```json
+{
+  "dependencies": {
+    "@supabase/auth-helpers-nextjs": "latest",
+    "@supabase/supabase-js": "latest",
+    "next": "14.x",
+    "react": "18.x",
+    "react-dom": "18.x",
+    "tailwindcss": "latest",
+    "typescript": "latest",
+    "@vercel/analytics": "latest"
+  }
+}
+```
+
+## Database Schema
+
+### Tables Structure
+Must implement these exact tables in Supabase:
+
+```sql
+-- Categories Table
+create table categories (
+  id uuid default uuid_generate_v4() primary key,
+  name text not null,
+  name_english text,
+  icon_url text,
+  summary text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+[Additional tables as specified in PRD]
+```
+
+## Component Rules
+
+### Layout Components
+1. MUST use RTL configuration:
+```typescript
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="he" dir="rtl">
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+### UI Components
+1. MUST use shadcn/ui components
+2. MUST follow this pattern:
+```typescript
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+
+export function ComponentName({ prop1, prop2 }: Props) {
+  return (
+    <Card>
+      <div className="rtl-specific-class">
+        {/* Component content */}
+      </div>
+    </Card>
+  )
+}
+```
+
+### Data Fetching
+1. MUST use this pattern:
+```typescript
+export async function getData() {
+  const supabase = createServerSupabaseClient()
+  
+  return unstable_cache(
+    async () => {
+      const { data, error } = await supabase
+        .from('table_name')
+        .select('*')
+      if (error) throw error
+      return data
+    },
+    ['cache-key'],
+    { revalidate: 60 }
+  )()
+}
+```
+
+## API Routes
+
+### Edge Functions
+1. MUST implement Edge Runtime:
+```typescript
+export const runtime = 'edge'
+
+export async function GET() {
+  try {
+    const supabase = createEdgeSupabaseClient()
+    // Implementation
+  } catch (error) {
+    return new Response('Error', { status: 500 })
+  }
+}
+```
+
+## Styling Rules
+
+### Tailwind Configuration
+1. MUST use RTL utilities
+2. MUST follow dark theme
+3. MUST use these colors:
+```javascript
+colors: {
+  primary: '#1a1b3f',
+  secondary: '#4a148c',
+  accent: '#00796b',
+  background: '#121212'
+}
+```
+
+### shadcn/ui Theme
+1. MUST configure for RTL
+2. MUST use dark theme
+3. MUST follow accessibility guidelines
+
+## Authentication Rules
+
+### Supabase Auth
+1. MUST use GitHub authentication
+2. MUST protect admin routes
+3. MUST implement this pattern:
+```typescript
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+
+export async function getSession() {
+  const supabase = createServerComponentClient({ cookies })
+  return await supabase.auth.getSession()
+}
+```
+
+## Performance Rules
+
+### Optimization Requirements
+1. MUST use React Server Components
+2. MUST implement proper caching
+3. MUST optimize images
+4. MUST use edge functions
+5. MUST implement connection pooling
+
+### Caching Strategy
+1. MUST use unstable_cache for data
+2. MUST implement proper revalidation
+3. MUST use Edge Runtime where possible
+
+## Error Handling
+
+### Required Patterns
+1. MUST implement error boundaries
+2. MUST handle API errors
+3. MUST show error states
+4. MUST log errors appropriately
+
+### Error Boundaries
+```typescript
+export default function ErrorBoundary({
+  error,
+  reset,
+}: {
+  error: Error
+  reset: () => void
+}) {
+  return (
+    <div className="error-container">
+      {/* Error UI */}
+    </div>
+  )
+}
+```
+
+## Accessibility Rules
+
+### Requirements
+1. MUST follow WCAG 2.1
+2. MUST support keyboard navigation
+3. MUST implement ARIA labels
+4. MUST maintain proper contrast
+5. MUST support screen readers
+
+### RTL Text
+1. MUST use proper RTL attributes
+2. MUST handle mixed content correctly
+3. MUST implement proper text alignment
+
+## Environment Variables
+
+### Required Variables
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SITE_URL=
+ANTHROPIC_API_KEY=
+```
+
+## Development Process
+
+### Implementation Order
+1. Project setup
+2. Authentication
+3. Core features
+4. Advanced features
+5. Optimization
+
+### Feature Implementation
+1. Start with Server Components
+2. Add Client Components as needed
+3. Implement error handling
+4. Add loading states
+5. Test RTL layout
+6. Verify accessibility
+
+## Testing Requirements
+
+### Unit Tests
+1. MUST test components
+2. MUST test utilities
+3. MUST test API routes
+
+### Integration Tests
+1. MUST test auth flows
+2. MUST test data flow
+3. MUST test real-time updates
+
+### Performance Tests
+1. MUST test Lighthouse scores
+2. MUST test Core Web Vitals
+3. MUST test RTL compatibility
+
+## Deployment Rules
+
+### Vercel Configuration
+1. MUST use Edge Functions
+2. MUST configure environment variables
+3. MUST set up analytics
+4. MUST implement monitoring
+
+### Supabase Setup
+1. MUST initialize database
+2. MUST configure auth
+3. MUST set up RLS policies
+4. MUST configure real-time
+
+## Monitoring Requirements
+
+### Performance Monitoring
+1. MUST use Vercel Analytics
+2. MUST track Core Web Vitals
+3. MUST monitor error rates
+4. MUST track API performance
+
+### Error Tracking
+1. MUST log all errors
+2. MUST track API failures
+3. MUST monitor performance issues
+4. MUST alert on critical errors
