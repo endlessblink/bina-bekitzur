@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { Button } from './ui/button'
 
 const modelTypes = [
@@ -13,9 +14,9 @@ const modelTypes = [
       "יכולות תרגום והבנת הקשר מתקדמות"
     ],
     recommendedModels: [
-      { name: "ChatGPT", type: "OpenAI", color: "text-green-400" },
-      { name: "Claude", type: "Anthropic", color: "text-purple-400" },
-      { name: "Gemini", type: "Google", color: "text-blue-400" }
+      { id: "chatgpt", name: "ChatGPT", type: "OpenAI", color: "text-green-400" },
+      { id: "claude", name: "Claude", type: "Anthropic", color: "text-purple-400" },
+      { id: "gemini", name: "Gemini", type: "Google", color: "text-blue-400" }
     ]
   },
   {
@@ -29,8 +30,8 @@ const modelTypes = [
       "המרת קול לכלי נגינה ולהפך"
     ],
     recommendedModels: [
-      { name: "MusicGen", type: "Meta", color: "text-blue-400" },
-      { name: "AudioCraft", type: "Meta", color: "text-blue-400" }
+      { id: "musicgen", name: "MusicGen", type: "Meta", color: "text-blue-400" },
+      { id: "audiocraft", name: "AudioCraft", type: "Meta", color: "text-blue-400" }
     ]
   },
   {
@@ -44,9 +45,9 @@ const modelTypes = [
       "המרת תמונות סטילס לאנימציה"
     ],
     recommendedModels: [
-      { name: "Runway Gen-2", type: "Runway", color: "text-teal-400" },
-      { name: "Pika Labs", type: "Pika", color: "text-yellow-400" },
-      { name: "Stable Video", type: "Stability", color: "text-purple-400" }
+      { id: "runway-gen2", name: "Runway Gen-2", type: "Runway", color: "text-teal-400" },
+      { id: "pika", name: "Pika Labs", type: "Pika", color: "text-yellow-400" },
+      { id: "stable-video", name: "Stable Video", type: "Stability", color: "text-purple-400" }
     ]
   },
   {
@@ -60,9 +61,9 @@ const modelTypes = [
       "שליטה מלאה בטון ומהירות הדיבור"
     ],
     recommendedModels: [
-      { name: "Whisper", type: "OpenAI", color: "text-green-400" },
-      { name: "Bark", type: "Suno", color: "text-orange-400" },
-      { name: "Coqui", type: "TTS", color: "text-blue-400" }
+      { id: "whisper", name: "Whisper", type: "OpenAI", color: "text-green-400" },
+      { id: "bark", name: "Bark", type: "Suno", color: "text-orange-400" },
+      { id: "coqui", name: "Coqui", type: "TTS", color: "text-blue-400" }
     ]
   }
 ]
@@ -134,15 +135,16 @@ export function HeroSection() {
                 <div className="p-4 mt-auto">
                   <div className="flex flex-wrap gap-2">
                     {model.recommendedModels.map((rec, k) => (
-                      <div 
+                      <Link 
                         key={k}
+                        href={`/models/${rec.id}`}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-[#2A2A2A] hover:bg-[#3A2A4A] transition-all duration-300 cursor-pointer group/model"
                       >
                         <span className="text-white/90 text-xs font-medium">{rec.name}</span>
                         <span className={`text-[10px] ${rec.color} opacity-80 group-hover/model:opacity-100`}>
                           {rec.type}
                         </span>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 </div>
