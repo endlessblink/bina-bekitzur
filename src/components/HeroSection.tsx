@@ -131,7 +131,7 @@ export function HeroSection() {
                 </div>
 
                 {/* Card Footer - Recommended Models */}
-                <div className="p-4 bg-[#1A1A1A] mt-auto">
+                <div className="p-4 mt-auto">
                   <div className="flex flex-wrap gap-2">
                     {model.recommendedModels.map((rec, k) => (
                       <div 
