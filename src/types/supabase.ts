@@ -9,36 +9,97 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      models: {
+      categories: {
         Row: {
           id: string
           name: string
-          name_english: string
-          description: string
-          favicon: string
-          pricing: 'free' | 'paid' | 'freemium'
-          features: string[]
-          pros: string[]
-          cons: string[]
+          name_english: string | null
+          icon_url: string | null
+          summary: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           name: string
-          name_english: string
-          description: string
-          favicon: string
-          pricing: 'free' | 'paid' | 'freemium'
-          features?: string[]
-          pros?: string[]
-          cons?: string[]
+          name_english?: string | null
+          icon_url?: string | null
+          summary?: string | null
           created_at?: string
           updated_at?: string
         }
-        Update: Partial<Database['public']['Tables']['models']['Insert']>
+        Update: {
+          id?: string
+          name?: string
+          name_english?: string | null
+          icon_url?: string | null
+          summary?: string | null
+          created_at?: string
+          updated_at?: string
+        }
       }
-      // Add other table definitions...
+      ai_models: {
+        Row: {
+          id: string
+          name: string
+          name_english: string | null
+          description: string | null
+          features: string[]
+          pros: string[] | null
+          cons: string[] | null
+          provider: string
+          category_id: string
+          access_type: 'free' | 'paid' | 'mixed'
+          image_url: string | null
+          is_featured: boolean
+          tags: string[]
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          name_english?: string | null
+          description?: string | null
+          features: string[]
+          pros?: string[] | null
+          cons?: string[] | null
+          provider: string
+          category_id: string
+          access_type?: 'free' | 'paid' | 'mixed'
+          image_url?: string | null
+          is_featured?: boolean
+          tags?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          name_english?: string | null
+          description?: string | null
+          features?: string[]
+          pros?: string[] | null
+          cons?: string[] | null
+          provider?: string
+          category_id?: string
+          access_type?: 'free' | 'paid' | 'mixed'
+          image_url?: string | null
+          is_featured?: boolean
+          tags?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
     }
   }
 } 

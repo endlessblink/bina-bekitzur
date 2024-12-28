@@ -1,32 +1,13 @@
-import * as React from 'react'
-import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/supabase'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from 'next/image'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { getModel } from '@/lib/supabase'
 
 interface ModelPageProps {
   params: {
     id: string
   }
-}
-
-async function getModel(id: string) {
-  const supabase = createServerSupabaseClient()
-  const { data, error } = await supabase
-    .from('models')
-    .select(`
-      *,
-      category:categories(name)
-    `)
-    .eq('id', id)
-    .single()
-
-  if (error || !data) {
-    return null
-  }
-
-  return data
 }
 
 export default async function ModelPage({ params }: ModelPageProps) {
@@ -91,18 +72,15 @@ export default async function ModelPage({ params }: ModelPageProps) {
           </Card>
 
           {/* Features */}
-          {model.features && model.features.length > 0 && (
+          {Array.isArray(model.features) && model.features.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>יכולות עיקריות</CardTitle>
+                <CardTitle>תכונות</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="grid gap-4">
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                   {model.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
-                      <span className="text-muted-foreground">{feature}</span>
-                    </li>
+                    <li key={index}>{feature}</li>
                   ))}
                 </ul>
               </CardContent>
@@ -110,45 +88,40 @@ export default async function ModelPage({ params }: ModelPageProps) {
           )}
 
           {/* Pros & Cons */}
-          <div className="grid gap-6 sm:grid-cols-2">
-            {/* Pros */}
-            {model.pros && model.pros.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>יתרונות</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="grid gap-4">
-                    {model.pros.map((pro, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-green-500 flex-shrink-0" />
-                        <span className="text-muted-foreground">{pro}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Cons */}
-            {model.cons && model.cons.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>חסרונות</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="grid gap-4">
-                    {model.cons.map((con, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-destructive flex-shrink-0" />
-                        <span className="text-muted-foreground">{con}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          {(Array.isArray(model.pros) && model.pros.length > 0) || 
+           (Array.isArray(model.cons) && model.cons.length > 0) ? (
+            <div className="grid gap-6 md:grid-cols-2">
+              {Array.isArray(model.pros) && model.pros.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>יתרונות</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                      {model.pros.map((pro, index) => (
+                        <li key={index}>{pro}</li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {Array.isArray(model.cons) && model.cons.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>חסרונות</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                      {model.cons.map((con, index) => (
+                        <li key={index}>{con}</li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
     </main>

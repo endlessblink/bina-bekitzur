@@ -1,57 +1,82 @@
-import type { Database } from '@/types/supabase'
 import { createClient } from '@supabase/supabase-js'
-import { cache } from 'react'
 
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
-      NEXT_PUBLIC_SUPABASE_URL: string
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: string
-      SUPABASE_SERVICE_ROLE_KEY: string
-    }
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+// Create a single supabase client for interacting with your database
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false
   }
-}
-
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
-}
-
-if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY')
-}
-
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error('Missing env.SUPABASE_SERVICE_ROLE_KEY')
-}
-
-export const createServerSupabaseClient = cache(() => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase credentials')
-  }
-
-  return createClient<Database>(supabaseUrl, supabaseKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
 })
 
-export const createClientSupabaseClient = cache(() => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// Fetch all models
+export async function getModels() {
+  const { data, error } = await supabase
+    .from('ai_models')
+    .select(`
+      *,
+      category:categories(id, name)
+    `)
+    .order('name')
 
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase credentials')
+  if (error) {
+    console.error('Error fetching models:', error)
+    return []
   }
 
-  return createClient<Database>(supabaseUrl, supabaseKey, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true
-    }
-  })
-}) 
+  return data || []
+}
+
+// Fetch a single model by ID
+export async function getModel(id: string) {
+  const { data, error } = await supabase
+    .from('ai_models')
+    .select(`
+      *,
+      category:categories(id, name)
+    `)
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    console.error('Error fetching model:', error)
+    return null
+  }
+
+  return data
+}
+
+export async function getCategories() {
+  const { data: categories, error } = await supabase
+    .from('categories')
+    .select('*')
+    .order('name')
+  
+  if (error) {
+    console.error('Error fetching categories:', error)
+    return []
+  }
+
+  return categories
+}
+
+export async function getFeaturedModels() {
+  const { data: models, error } = await supabase
+    .from('ai_models')
+    .select(`
+      *,
+      category:categories(id, name)
+    `)
+    .eq('is_featured', true)
+    .order('name')
+  
+  if (error) {
+    console.error('Error fetching featured models:', error)
+    return []
+  }
+
+  return models
+} 

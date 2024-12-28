@@ -3,129 +3,91 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getModels } from '@/lib/supabase'
 
-const mainCategories = [
-  { id: 1, name: "מערכות שפתיות", count: 1 },
-  { id: 2, name: "הקראה", count: 1 },
-  { id: 3, name: "יצירת מוזיקה", count: 1 },
-  { id: 4, name: "יצירת וידאו", count: 2 },
-  { id: 5, name: "מודל שפה", count: 2 }
-]
-
-const subCategories = [
-  "שיחה",
-  "כתיבה",
-  "תכנות",
-  "תרגום",
-  "מחקר",
-  "שאלות ותשובות",
-  "סיכום",
-  "ניתוח טקסט",
-]
-
-const models = [
-  {
-    id: "chatgpt",
-    mainCategory: "מערכות שפתיות",
-    category: "שיחה",
-    features: [
-      "יכולת שיחה טבעית",
-      "תמיכה בשפות רבות",
-      "הבנת הקשר"
-    ],
-    provider: "OpenAI",
-    model: "ChatGPT",
-    hasApi: true,
-    tags: ["שיחה", "כתיבה", "תכנות"]
-  },
-  {
-    id: "claude",
-    mainCategory: "מערכות שפתיות",
-    category: "שיחה",
-    features: [
-      "יכולת שיחה מתקדמת",
-      "הבנת טקסט מורכב",
-      "תמיכה בקוד"
-    ],
-    provider: "Anthropic",
-    model: "Claude",
-    hasApi: true,
-    tags: ["שיחה", "מחקר", "תכנות"]
-  },
-  {
-    id: "gemini",
-    mainCategory: "מערכות שפתיות",
-    category: "שיחה",
-    features: [
-      "הבנת תמונות",
-      "יכולות מולטימודליות", 
-      "אינטגרציה עם שירותי גוגל"
-    ],
-    provider: "Google",
-    model: "Gemini",
-    hasApi: true,
-    tags: ["שיחה", "ניתוח טקסט", "תרגום"]
+interface Model {
+  id: string
+  name: string
+  name_english?: string
+  description?: string
+  features: string[] | null
+  provider: string
+  category: {
+    id: string
+    name: string
   }
-]
+  access_type: 'free' | 'paid' | 'mixed'
+  tags: string[] | null
+}
 
 export function ComparisonTable() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [showApiOnly, setShowApiOnly] = useState(false)
+  const [models, setModels] = useState<Model[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchModels() {
+      const data = await getModels()
+      // Parse JSON strings to arrays if needed
+      const parsedData = data.map(model => ({
+        ...model,
+        features: Array.isArray(model.features) ? model.features : [],
+        tags: Array.isArray(model.tags) ? model.tags : []
+      }))
+      setModels(parsedData)
+      setLoading(false)
+    }
+
+    fetchModels()
+  }, [])
+
+  const mainCategories = Array.from(new Set(models.map(model => model.category?.name))).filter(Boolean).map(name => ({
+    id: models.find(m => m.category?.name === name)?.category?.id || '',
+    name: name || '',
+    count: models.filter(m => m.category?.name === name).length
+  }))
+
+  const allTags = Array.from(new Set(models.flatMap(model => model.tags || []))).sort()
 
   const filteredModels = models.filter(model => {
     const matchesSearch = 
-      model.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      model.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      model.features.some(feature => 
-        feature.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    
-    const matchesMainCategory = !selectedMainCategory || model.mainCategory === selectedMainCategory
-    const matchesTags = selectedTags.length === 0 || selectedTags.some(tag => model.tags.includes(tag))
-    const matchesApi = !showApiOnly || model.hasApi
+      model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      model.name_english?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      model.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      model.provider.toLowerCase().includes(searchQuery.toLowerCase())
 
-    return matchesSearch && matchesMainCategory && matchesTags && matchesApi
+    const matchesCategory = !selectedMainCategory || model.category?.name === selectedMainCategory
+
+    const matchesTags = selectedTags.length === 0 || 
+      selectedTags.every(tag => model.tags?.includes(tag))
+
+    const matchesApi = !showApiOnly || model.access_type === 'free'
+
+    return matchesSearch && matchesCategory && matchesTags && matchesApi
   })
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) 
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    )
+  if (loading) {
+    return <div className="p-8 text-center">טוען...</div>
   }
 
   return (
-    <div className="mt-24">
-      <h2 className="text-2xl font-bold text-center mb-12 text-white">השוואת מודלים</h2>
-      
-      {/* Filters */}
-      <div className="max-w-4xl mx-auto mb-8">
-        <div className="flex flex-col gap-4">
-          {/* Search and API Toggle */}
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Input
-                type="search"
-                placeholder="חיפוש מודלים..."
-                className="bg-[#1A1B1E] border-gray-800"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button
-              variant={showApiOnly ? "default" : "outline"}
-              onClick={() => setShowApiOnly(!showApiOnly)}
-              className="min-w-[140px]"
-            >
-              רק מודלים עם API
-            </Button>
-          </div>
-
-          {/* Main Categories */}
+    <div className="container py-8">
+      <div className="rounded-xl border bg-card p-6 shadow-lg">
+        <h2 className="mb-6 text-2xl font-bold text-white">השוואת מודלים</h2>
+        
+        {/* Filters */}
+        <div className="mb-6 grid gap-4">
+          <Input
+            placeholder="חיפוש מודלים..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-sm"
+          />
+          
           <div className="flex flex-wrap gap-2">
             {mainCategories.map((category) => (
               <Button
@@ -134,75 +96,87 @@ export function ComparisonTable() {
                 onClick={() => setSelectedMainCategory(
                   selectedMainCategory === category.name ? null : category.name
                 )}
-                className="text-sm"
+                className="h-8"
               >
-                {category.name}
-                <span className="mr-2 text-xs bg-gray-700 px-1.5 py-0.5 rounded-full">
-                  {category.count}
-                </span>
+                {category.name} ({category.count})
               </Button>
             ))}
           </div>
 
-          {/* Sub Categories / Tags */}
-          <div className="flex flex-wrap gap-2 border-t border-gray-800 pt-4">
-            {subCategories.map((tag) => (
+          <div className="flex flex-wrap gap-2">
+            {allTags.map((tag) => (
               <Button
                 key={tag}
                 variant={selectedTags.includes(tag) ? "default" : "outline"}
-                onClick={() => toggleTag(tag)}
-                className="text-sm"
-                size="sm"
+                onClick={() => setSelectedTags(
+                  selectedTags.includes(tag)
+                    ? selectedTags.filter(t => t !== tag)
+                    : [...selectedTags, tag]
+                )}
+                className="h-8"
               >
                 {tag}
               </Button>
             ))}
           </div>
-        </div>
-      </div>
 
-      {/* Table */}
-      <div className="max-w-4xl mx-auto">
-        <div className="overflow-hidden rounded-xl bg-[#1A1B1E] border border-gray-800">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-gray-800 bg-[#1A1B1E]/80">
-                <th className="py-5 px-8 text-right font-bold text-white/90">קטגוריה</th>
-                <th className="py-5 px-8 text-right font-bold text-white/90">יכולות עיקריות</th>
-                <th className="py-5 px-8 text-right font-bold text-white/90">ספק</th>
-                <th className="py-5 px-8 text-right font-bold text-white/90">מודל</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-800">
-              {filteredModels.map((model, index) => (
-                <tr 
-                  key={index} 
-                  className="transition-colors hover:bg-gray-800/30"
-                >
-                  <td className="py-5 px-8">
-                    <div className="text-white/80">{model.mainCategory}</div>
-                    <div className="text-sm text-gray-500 mt-1">{model.category}</div>
-                  </td>
-                  <td className="py-5 px-8">
-                    <ul className="space-y-2.5">
-                      {model.features.map((feature, i) => (
-                        <li key={i} className="flex items-center gap-2.5 text-gray-300">
-                          <span className="text-[#7127BA]">•</span>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </td>
-                  <td className="py-5 px-8 text-gray-400">{model.provider}</td>
-                  <td className="py-5 px-8">
-                    <Link href={`/models/${model.id}`} className="font-medium text-[#7127BA] hover:text-[#8A3FD9] transition-colors">
-                      {model.model}
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Button
+            variant={showApiOnly ? "default" : "outline"}
+            onClick={() => setShowApiOnly(!showApiOnly)}
+            className="w-fit"
+          >
+            הצג רק מודלים חינמיים
+          </Button>
+        </div>
+
+        {/* Results */}
+        <div className="grid gap-4">
+          {filteredModels.map((model) => (
+            <Link
+              key={model.id}
+              href={`/models/${model.id}`}
+              className="group relative rounded-lg border bg-card p-4 transition-colors hover:bg-accent/10"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-semibold">{model.name}</h3>
+                  {model.name_english && (
+                    <p className="text-sm text-muted-foreground">{model.name_english}</p>
+                  )}
+                  <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>{model.provider}</span>
+                    {model.category && (
+                      <>
+                        <span>•</span>
+                        <span>{model.category.name}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="text-sm">
+                  {model.access_type === 'free' && (
+                    <span className="rounded-full bg-green-500/10 px-2 py-1 text-green-500">חינמי</span>
+                  )}
+                  {model.access_type === 'paid' && (
+                    <span className="rounded-full bg-blue-500/10 px-2 py-1 text-blue-500">בתשלום</span>
+                  )}
+                  {model.access_type === 'mixed' && (
+                    <span className="rounded-full bg-purple-500/10 px-2 py-1 text-purple-500">משולב</span>
+                  )}
+                </div>
+              </div>
+              {model.features && model.features.length > 0 && (
+                <ul className="mt-4 grid gap-2">
+                  {model.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Link>
+          ))}
         </div>
       </div>
     </div>
