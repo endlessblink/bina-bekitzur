@@ -67,18 +67,6 @@ const modelTypes = [
   }
 ]
 
-const comparisonData = [
-  {
-    category: "שיחה",
-    models: [
-      { name: "ChatGPT", provider: "OpenAI", features: ["יכולת שיחה טבעית", "תמיכה בשפות רבות", "הבנת הקשר"] },
-      { name: "Claude", provider: "Anthropic", features: ["יכולת שיחה מתקדמת", "הבנת טקסט מורכב", "תמיכה בקוד"] },
-      { name: "Gemini", provider: "Google", features: ["הבנת תמונות", "יכולות מולטימודליות", "אינטגרציה עם שירותי גוגל"] }
-    ]
-  },
-  // Add more categories as needed
-]
-
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden">
@@ -160,47 +148,6 @@ export function HeroSection() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Model Comparison Table */}
-        <div className="mt-24">
-          <h2 className="text-2xl font-bold text-center mb-12">
-            השוואת מודלים
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-[#1A1A1A]">
-                  <th className="p-4 text-right border-b border-[#2A2A2A]">קטגוריה</th>
-                  <th className="p-4 text-right border-b border-[#2A2A2A]">מודל</th>
-                  <th className="p-4 text-right border-b border-[#2A2A2A]">ספק</th>
-                  <th className="p-4 text-right border-b border-[#2A2A2A]">יכולות עיקריות</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonData.map((category, i) => (
-                  category.models.map((model, j) => (
-                    <tr key={`${i}-${j}`} className="hover:bg-[#1A1A1A]">
-                      {j === 0 && (
-                        <td rowSpan={category.models.length} className="p-4 border-b border-[#2A2A2A] align-top">
-                          {category.category}
-                        </td>
-                      )}
-                      <td className="p-4 border-b border-[#2A2A2A]">{model.name}</td>
-                      <td className="p-4 border-b border-[#2A2A2A]">{model.provider}</td>
-                      <td className="p-4 border-b border-[#2A2A2A]">
-                        <ul className="list-disc list-inside">
-                          {model.features.map((feature, k) => (
-                            <li key={k} className="text-sm text-white/70">{feature}</li>
-                          ))}
-                        </ul>
-                      </td>
-                    </tr>
-                  ))
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
