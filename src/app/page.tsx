@@ -1,5 +1,5 @@
-import { HeroSection } from '@/components/HeroSection'
-import { ComparisonTable } from '@/components/ComparisonTable'
+import { HeroSection } from "@/components/HeroSection"
+import { ComparisonTable } from "@/components/ComparisonTable"
 
 export default function HomePage() {
   return (

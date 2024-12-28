@@ -9,74 +9,110 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: false,
     autoRefreshToken: false,
     detectSessionInUrl: false
+  },
+  db: {
+    schema: 'public'
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'supabase-js'
+    }
   }
 })
 
-// Fetch all models
+// Fetch all models with error handling
 export async function getModels() {
-  const { data, error } = await supabase
-    .from('ai_models')
-    .select(`
-      *,
-      category:categories(id, name)
-    `)
-    .order('name')
+  try {
+    // First, let's try to get all columns
+    const { data, error } = await supabase
+      .from('ai_models')
+      .select('*')
 
-  if (error) {
-    console.error('Error fetching models:', error)
+    if (error) {
+      console.error('Error fetching models:', error)
+      return []
+    }
+
+    // Log the first item to see its structure
+    if (Array.isArray(data) && data.length > 0) {
+      console.log('First model structure:', data[0])
+    }
+
+    return data || []
+  } catch (err) {
+    console.error('Unexpected error fetching models:', err)
     return []
   }
-
-  return data || []
 }
 
-// Fetch a single model by ID
+// Fetch a single model by ID with error handling
 export async function getModel(id: string) {
-  const { data, error } = await supabase
-    .from('ai_models')
-    .select(`
-      *,
-      category:categories(id, name)
-    `)
-    .eq('id', id)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('ai_models')
+      .select(`
+        id,
+        name,
+        description,
+        features,
+        category:categories(id, name)
+      `)
+      .eq('id', id)
+      .single()
 
-  if (error) {
-    console.error('Error fetching model:', error)
+    if (error) {
+      console.error('Error fetching model:', error)
+      return null
+    }
+
+    return data
+  } catch (err) {
+    console.error('Unexpected error fetching model:', err)
     return null
   }
-
-  return data
 }
 
 export async function getCategories() {
-  const { data: categories, error } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name')
-  
-  if (error) {
-    console.error('Error fetching categories:', error)
+  try {
+    const { data: categories, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name')
+    
+    if (error) {
+      console.error('Error fetching categories:', error)
+      return []
+    }
+
+    return categories
+  } catch (err) {
+    console.error('Unexpected error fetching categories:', err)
     return []
   }
-
-  return categories
 }
 
 export async function getFeaturedModels() {
-  const { data: models, error } = await supabase
-    .from('ai_models')
-    .select(`
-      *,
-      category:categories(id, name)
-    `)
-    .eq('is_featured', true)
-    .order('name')
-  
-  if (error) {
-    console.error('Error fetching featured models:', error)
+  try {
+    const { data: models, error } = await supabase
+      .from('ai_models')
+      .select(`
+        id,
+        name,
+        description,
+        features,
+        category:categories(id, name)
+      `)
+      .eq('is_featured', true)
+      .order('name')
+    
+    if (error) {
+      console.error('Error fetching featured models:', error)
+      return []
+    }
+
+    return models
+  } catch (err) {
+    console.error('Unexpected error fetching featured models:', err)
     return []
   }
-
-  return models
 } 
